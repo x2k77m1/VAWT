@@ -337,18 +337,32 @@ const struct core_param vawt_wave_param = {
 };
 
 /* One wavetable sample: bilinear in phase and frame. tbl is 8x256 Q15.
- * The lerps split their shifts so (diff * frac) never overflows 32 bits. */
-static int32_t wt_sample(const int16_t tbl[8][256], uint32_t p, int32_t f0, int32_t ff)
+ * The lerps split their shifts so (diff * frac) never overflows 32 bits.
+ * Split for inlining: wt_phase lerps one frame in phase, wt_sample_fr
+ * adds the frame lerp. Frame pointers / f1 / ff are hoisted once per
+ * block in the render; ff==0 skips the second frame as an identity. */
+static __attribute__((always_inline)) inline int32_t wt_phase(const int16_t *fr, uint32_t p)
 {
     uint32_t pi = p >> 24;
-    int32_t pf = (int32_t)((p >> 8) & 0xffffu);
     uint32_t pi1 = (pi + 1u) & 255u;
+    int32_t pf4 = (int32_t)((p >> 12) & 0xfffu); /* == (((p>>8)&0xffff)>>4) */
+    int32_t a0 = fr[pi], a1 = fr[pi1];
+    return a0 + (int32_t)((((a1 - a0) >> 4) * pf4) >> 8);
+}
+
+static __attribute__((always_inline)) inline int32_t wt_sample_fr(const int16_t *fa, const int16_t *fb, uint32_t p, int32_t ff4, int32_t use_ff)
+{
+    int32_t s0 = wt_phase(fa, p);
+    if (!use_ff)
+        return s0;
+    int32_t s1 = wt_phase(fb, p);
+    return s0 + (int32_t)((((s1 - s0) >> 4) * ff4) >> 8);
+}
+
+static int32_t wt_sample(const int16_t tbl[8][256], uint32_t p, int32_t f0, int32_t ff)
+{
     int32_t f1 = f0 < 7 ? f0 + 1 : 7;
-    int32_t a0 = tbl[f0][pi], a1 = tbl[f0][pi1];
-    int32_t b0 = tbl[f1][pi], b1 = tbl[f1][pi1];
-    int32_t s0 = a0 + (int32_t)((((a1 - a0) >> 4) * (pf >> 4)) >> 8);
-    int32_t s1 = b0 + (int32_t)((((b1 - b0) >> 4) * (pf >> 4)) >> 8);
-    return s0 + (int32_t)((((s1 - s0) >> 4) * (ff >> 4)) >> 8);
+    return wt_sample_fr(tbl[f0], tbl[f1], p, ff >> 4, ff != 0);
 }
 
 static __attribute__((always_inline)) inline uint32_t lfsr_next(uint32_t *s)
@@ -531,6 +545,14 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
         f0 = 0;
     if (f0 > 7)
         f0 = 7;
+    /* WT frame hoists: base pointers, f1 and frame fraction once per
+     * block. Bit-exact: same lerps, second frame skipped only when
+     * ff==0 (identity). */
+    int32_t f1 = f0 < 7 ? f0 + 1 : 7;
+    const int16_t *wa0 = wt_banks[bank][f0];
+    const int16_t *wa1 = wt_banks[bank][f1];
+    int32_t ff4 = ff >> 4;
+    int32_t use_ff = ff != 0;
 
     if (v->fresh) {
         vawt_p1[voice] = vawt_p2[voice] = vawt_ps[voice] = 0;
@@ -541,22 +563,36 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
     p1 = vawt_p1[voice];
     p2 = vawt_p2[voice];
     ps = vawt_ps[voice];
+    /* Hoisted per-sample state: load once, keep in registers, store once.
+     * Bit-exact: only the last hold_val/lp matters across blocks, and the
+     * LFSR/hold_acc sequences are identical, just without .bss traffic. */
+    uint32_t nz_state = vawt_noise[voice];
+    uint32_t hold_acc = vawt_hold_acc[voice];
+    int32_t hold_val = vawt_hold_val[voice];
+    int32_t lp = vawt_lp[voice];
+    /* Loop-invariant hoists, all bit-exact: dt* feed the same BLEP
+     * residual, lim is sym-only, mix_inv is block-constant. */
+    uint32_t dt1 = (uint32_t)inc1 >> 16;
+    uint32_t dt2 = (uint32_t)inc2 >> 16;
+    uint32_t dts = (uint32_t)incs >> 16;
+    int32_t lim = 32767 - (sym < 0 ? -sym : sym);
+    int32_t mix_inv = 127 - mix;
 
     for (i = 0; i < 32; i++) {
         int32_t s1, s2, s, nz, k;
         p1 += (uint32_t)inc1;
         p2 += (uint32_t)inc2;
         ps += (uint32_t)incs;
-        nz = need_nz ? (int32_t)(lfsr_next(&vawt_noise[voice]) >> 16) - 32768 : 0;
+        nz = need_nz ? (int32_t)(lfsr_next(&nz_state) >> 16) - 32768 : 0;
 
         switch (wave) {
         case 0: {
             int32_t q1 = (int32_t)(p1 >> 16), q2 = (int32_t)(p2 >> 16);
-            uint32_t t1 = p1 >> 16, dt1 = (uint32_t)inc1 >> 16;
+            uint32_t t1 = p1 >> 16;
             s1 = q1 - 32768;
             s1 -= blep_fall(t1, dt1);
             if (use_s2) {
-                uint32_t t2 = p2 >> 16, dt2 = (uint32_t)inc2 >> 16;
+                uint32_t t2 = p2 >> 16;
                 s2 = q2 - 32768;
                 s2 -= blep_fall(t2, dt2);
             } else {
@@ -566,12 +602,12 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
         }
         case 1:
         case 2: {
-            uint32_t t1 = p1 >> 16, dt1 = (uint32_t)inc1 >> 16;
+            uint32_t t1 = p1 >> 16;
             uint32_t u1 = (uint32_t)(p1 - pwth) >> 16;
             s1 = p1 < pwth ? 32767 : -32767;
             s1 += blep_fall(t1, dt1) - blep_fall(u1, dt1);
             if (use_s2) {
-                uint32_t t2 = p2 >> 16, dt2 = (uint32_t)inc2 >> 16;
+                uint32_t t2 = p2 >> 16;
                 uint32_t u2 = (uint32_t)(p2 - pwth) >> 16;
                 s2 = p2 < pwth ? 32767 : -32767;
                 s2 += blep_fall(t2, dt2) - blep_fall(u2, dt2);
@@ -596,8 +632,8 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
             s2 = use_s2 ? dnm_sin(p2) : 0;
             break;
         case 5:
-            s1 = wt_sample(wt_banks[bank], p1, f0, ff);
-            s2 = use_s2 ? wt_sample(wt_banks[bank], p2, f0, ff) : 0;
+            s1 = wt_sample_fr(wa0, wa1, p1, ff4, use_ff);
+            s2 = use_s2 ? wt_sample_fr(wa0, wa1, p2, ff4, use_ff) : 0;
             break;
         case 6:
             s1 = nz;
@@ -610,7 +646,10 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
             break;
         }
 
-        s = (int32_t)(((s1 * (127 - mix) + s2 * mix) >> 7) * 205 >> 8);
+        if (use_s2)
+            s = (int32_t)(((s1 * mix_inv + s2 * mix) >> 7) * 205 >> 8);
+        else
+            s = (int32_t)(((s1 * 127) >> 7) * 205 >> 8);
         if (use_sub) {
             /* Rounded square: mostly square so it cuts through, with the
              * triangle mixed in to soften the edges. Same peak as the old
@@ -620,12 +659,13 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
             int32_t q = (int32_t)(ps >> 16);
             int32_t tri = q < 32768 ? q * 2 - 32768 : 98302 - q * 2;
             int32_t sq = ps < 0x80000000u ? 32767 : -32767;
-            uint32_t ts = ps >> 16, dts = (uint32_t)incs >> 16;
+            uint32_t ts = ps >> 16;
             uint32_t us = (uint32_t)(ps - 0x80000000u) >> 16;
             sq += blep_fall(ts, dts) - blep_fall(us, dts);
             s += ((sq * 3 + tri) * sublvl) >> 10;
         }
-        s += (nz * noilvl) >> 9;
+        if (noilvl)
+            s += (nz * noilvl) >> 9;
 
         if (fold)
             s = (s * gain) >> 7;    /* fold 0 is s*128>>7 = s, exact */
@@ -633,7 +673,6 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
             /* Asymmetric fold around the symmetry offset: the rail
              * tightens by |sym| so the recentered output still peaks at
              * DNM_PEAK. sym == 0 is the exact old loop. */
-            int32_t lim = 32767 - (sym < 0 ? -sym : sym);
             s += sym;
             for (k = 0; k < 8 && (s > lim || s < -lim); k++)
                 s = s > 0 ? (lim << 1) - s : (-lim << 1) - s;
@@ -641,30 +680,34 @@ static void vawt_render(int32_t voice, int32_t *block, const struct dnm_voice *v
         }
         if (do_crush) {
             s &= ~cmask;
-            vawt_hold_acc[voice] += step;     /* sample-rate reduction */
-            if (vawt_hold_acc[voice] >= (1u << 16)) {
-                vawt_hold_acc[voice] -= 1u << 16;
-                vawt_hold_val[voice] = s;
+            hold_acc += step;     /* sample-rate reduction */
+            if (hold_acc >= (1u << 16)) {
+                hold_acc -= 1u << 16;
+                hold_val = s;
             }
-            s = vawt_hold_val[voice];
+            s = hold_val;
         } else {
-            vawt_hold_val[voice] = s;         /* OFF is identity, but keep
-                                               * the hold value fresh so a
-                                               * later switch back behaves
-                                               * exactly as before */
+            hold_val = s;         /* OFF is identity, but keep
+                                   * the hold value fresh so a
+                                   * later switch back behaves
+                                   * exactly as before */
         }
         if (do_lp) {
-            int32_t y = vawt_lp[voice] + (int32_t)(((s - vawt_lp[voice]) * lpc) >> 8);
-            vawt_lp[voice] = y;
+            int32_t y = lp + (int32_t)(((s - lp) * lpc) >> 8);
+            lp = y;
             s = y;
         } else {
-            vawt_lp[voice] = s;
+            lp = s;
         }
         block[i] = s << 12;
     }
     vawt_p1[voice] = p1;
     vawt_p2[voice] = p2;
     vawt_ps[voice] = ps;
+    vawt_noise[voice] = nz_state;
+    vawt_hold_acc[voice] = hold_acc;
+    vawt_hold_val[voice] = hold_val;
+    vawt_lp[voice] = lp;
 }
 
 /* MACHINES-menu tile: the author's 16x16 grid, verbatim (top row
