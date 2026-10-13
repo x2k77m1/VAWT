@@ -77,10 +77,10 @@ as on FM.
 ## Signal path
 
 ```
-OSC1 (WAVE @ pitch+OCT+drift) ─┐
-OSC2 (same WAVE, +DET, +drift) ─mix─┤─→ fold → crush → lowpass → out
+OSC1 (WAVE @ pitch+OCT+drift) ────────┐
+OSC2 (same WAVE, +DET, +drift) ───mix─┤─→ fold → crush → lowpass → out
 SUB rounded-square (@ sub octave) ────┤         (then Digitone filter/mix/FX,
-white noise ────────────────────────┘          AMP envelope + velocity)
+white noise ──────────────────────────┘          AMP envelope + velocity)
 ```
 
 Output peaks at `DNM_PEAK`, about as loud as FM at stock defaults. Zeroed stages
