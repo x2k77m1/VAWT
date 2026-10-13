@@ -1,0 +1,58 @@
+# VAWT feature script for digiemu fwcheck/fwcompare (--script).
+# Identical presses on stock and custom: everything before the T1 hold must
+# match (we changed nothing there); from the Mod Menu on the custom build
+# picks VAWT for track 1 and plays it.
+wait 1000
+snap start
+tap SYN1
+snap syn1-fm
+# Hold T1 on its own: core's Mod Menu (custom only; stock ignores the hold).
+press T1
+wait 700
+release T1
+wait 500
+snap modmenu
+tap YES
+wait 500
+snap machines
+tap RIGHT
+tap YES
+wait 500
+snap picked
+tap SYN1
+snap syn1-vawt
+turn A +24
+wait 200
+snap syn1-turn
+tap SYN2
+snap syn2-vawt
+tap PLAY
+wait 3000
+snap playing
+tap STOP
+tap STOP
+wait 500
+snap stopped
+# Regression: BANK switching used to wedge hold-to-menu (core's keys_down
+# kept the bank trigs' releases, eaten by the popup). Hold must still open
+# the menu after BANK -> 16 -> 1.
+tap BANK
+tap 16
+tap 1
+wait 800
+snap bank-H01
+press T1
+wait 800
+release T1
+wait 400
+snap bank-browser
+tap BANK
+tap 9
+tap 1
+wait 800
+snap bank-A01
+press T1
+wait 800
+release T1
+wait 400
+snap bank-menu

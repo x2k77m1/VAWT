@@ -1,0 +1,146 @@
+{
+  "id": "dnvawt",
+  "version": "0.1w",
+  "ele3_version": "0.1w",
+  "license": "GPL-2.0-or-later",
+  "title": "VAWT (Digitone machine)",
+  "category": "Sound",
+  "author": "x2k",
+  "description": "VAWT, a virtual-analogue + wavetable machine for the Digitone mk1: SAW/SQUARE/PULSE/TRI/SINE, 24 wavetable banks on a FILE knob, sub osc, noise, wavefolder, bitcrush and lowpass, on 15 SYN knobs. Needs the machines mod and core-dn1 3.1.",
+  "device": "digitone-mk1",
+  "os": "1.43",
+  "sources": [
+    "vawt.c",
+    "overlay.c",
+    "pages.s"
+  ],
+  "cflags": [
+    "-DKEYVAR_AT=0x41367ce4",
+    "-DPATPTR_AT=0x4138e214",
+    "-DPROJPTR_AT=0x419efde0"
+  ],
+  "ports": {
+    "1.44": {
+      "cflags": [
+        "-DKEYVAR_AT=0x41368ce4",
+        "-DPATPTR_AT=0x4138f214",
+        "-DPROJPTR_AT=0x419f0de0"
+      ],
+      "defsym": {
+        "PAGE_D_REC": "0x4136c5c4",
+        "PAGE_A_REC": "0x4136c5b8",
+        "FW_KIT": "0x4138f220",
+        "FW_ACTIVE_TRACK": "0x41368ce0"
+      },
+      "sites": [
+        {
+          "addr": "0x4016af9a",
+          "stock": "23c14136c5c4",
+          "op": "jsr",
+          "target": "vawt_knob182"
+        },
+        {
+          "addr": "0x4016af7c",
+          "stock": "23c14136c5b8",
+          "op": "jsr",
+          "target": "vawt_knob183"
+        }
+      ]
+    }
+  },
+  "defsym": {
+    "PAGE_D_REC": "0x4136b5c4",
+    "PAGE_A_REC": "0x4136b5b8",
+    "FW_KIT": "0x4138e220",
+    "FW_ACTIVE_TRACK": "0x41367ce0"
+  },
+  "sites": [
+    {
+      "addr": "0x4016ad26",
+      "stock": "23c14136b5c4",
+      "op": "jsr",
+      "target": "vawt_knob182"
+    },
+    {
+      "addr": "0x4016ad08",
+      "stock": "23c14136b5b8",
+      "op": "jsr",
+      "target": "vawt_knob183"
+    }
+  ],
+  "subscribe": [
+    {
+      "event": "ev_tick",
+      "fn": "vawt_tick",
+      "order": 60
+    },
+    {
+      "event": "ev_draw",
+      "fn": "vawt_draw",
+      "order": 60
+    },
+    {
+      "event": "ev_key",
+      "fn": "vawt_key_handler",
+      "order": 60
+    },
+    {
+      "event": "ev_enc",
+      "fn": "vawt_enc_handler",
+      "order": 60
+    }
+  ],
+  "contribute": [
+    {
+      "to": "dn_machines",
+      "order": 50,
+      "data": "00000000",
+      "relocs": [
+        [
+          0,
+          "abs32",
+          "sym:vawt_machine",
+          0
+        ]
+      ]
+    },
+    {
+      "to": "core_params",
+      "order": 50,
+      "data": "00000000",
+      "relocs": [
+        [
+          0,
+          "abs32",
+          "sym:vawt_oct_param",
+          0
+        ]
+      ]
+    },
+    {
+      "to": "core_params",
+      "order": 50,
+      "data": "00000000",
+      "relocs": [
+        [
+          0,
+          "abs32",
+          "sym:vawt_wave_param",
+          0
+        ]
+      ]
+    }
+  ],
+  "resources": {
+    "names": [
+      "dnmachine:10",
+      "param:182",
+      "param:183"
+    ],
+    "core": "3.1"
+  },
+  "requires": [
+    "core",
+    "machines"
+  ]
+}

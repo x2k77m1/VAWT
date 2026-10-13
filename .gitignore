@@ -1,0 +1,48 @@
+# Stock firmware and anything derived from it - never commit (Elektron copyright)
+*.syx
+*.bin
+*.elemod
+*.elf
+*.o
+sections/
+snapshots/
+firmware/
+out/
+check*/
+portable/
+__pycache__/
+.venv/
+*.snap
+*.img
+*.raw
+
+# User-supplied wavetable sources (local build input only, keep out of git)
+tools/OSW/
+
+# Local-only reference / experiment checkouts (never publish)
+tools/digichroma/
+tools/zoom-ms-zdl-effects-pack/
+
+# User-provided stock OS images (Elektron copyright, local build input only)
+original-os-sysex/
+
+# digiemu / elekloader local work
+/tmp/
+*.log
+
+# Never commit the vendor manual (Elektron copyright, user-provided reference)
+docs/*.pdf
+
+# Reference checkouts (other projects, keep out of this repo)
+tools/digicosm/
+tools/DigiSplash/
+tools/Tone-FX/
+tools/digiemu/
+tools/digipivi/
+tools/elekloader/
+tools/elektron-firmware-tool/
+tools/elekloader/out/
+tools/elekloader/mods/*/out/
+
+# OS
+.DS_Store
