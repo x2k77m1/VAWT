@@ -1,7 +1,7 @@
 # VAWT — a virtual-analogue + wavetable machine for the Digitone mk1
 
-A machine mod for the Elektron Digitone mk1 / Digitone Keys (OS 1.43 and 1.44),
-built with elekloader. It adds a non-FM sound engine: saw/square/pulse/triangle/sine
+A machine mod for the Elektron Digitone mk1 / Digitone Keys (OS 1.43 and 1.44).
+It adds a non-FM sound engine: saw/square/pulse/triangle/sine
 VA oscillators, a wavetable oscillator with bank switching (24 banks, all
 replaceable — factory ships 24 bundled tables), a sub osc, white noise, a wavefolder, bitcrush and
 a lowpass — played through the Digitone's own multimode filter, mixer, effects
