@@ -94,7 +94,7 @@ are skipped exactly, so a default patch costs well under a full one.
   width, sub, noise, tone, crush, levels, bounds, plus both system LFOs to VAWT
   SYN slots (OCT doubling, FOLD, clamp, FILTER-ignore). LFO destinations show FM
   names but modulate the same slots; FILTER/AMP LFOs work downstream as on FM.
-- Emulator: boots in digiemu vs stock; see `docs/evidence.md`.
+- Emulator: boots in digiemu vs stock.
 - Hardware: tested on a Digitone mk1 (1.43 and 1.44 builds); flash at your own
   risk. The bootloader is never touched, so the stock `.syx` always recovers the
   unit (FUNC on power-up → TRIG 4 OS UPGRADE).
@@ -156,7 +156,6 @@ Only the name stays FM's — a machine mod cannot rename those per track.
 | `tools/vawt_host_test.py` | host DSP tests, no stock needed (needs elekloader headers) |
 | `scripts/build.sh` | build + lint + patch for 1.43 and 1.44 |
 | `scripts/keys-vawt.txt` | emulator feature script for fwcheck |
-| `docs/evidence.md` | version-by-version proof log |
 | `docs/custom-tables.md` | build your own wavetable `.elemod` |
 | `docs/bank-hold.md` | upstream hold-to-menu issue and fix |
 | `preview/` | UI screenshots (SYN1, SYN2) |
