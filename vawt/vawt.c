@@ -11,9 +11,9 @@
  * AMP envelope like FM.
  *
  * Knobs (SYN1 then SYN2), all with stock ranges — except knob D: its
- * stock parameter (110) only spans 0-2, so 0.1c puts our own parameter
- * 182 there (range 0-4) via a page-constructor patch, editing the same
- * sound slot 20:
+ * stock parameter (110) only spans 0-2, so 0.1c mints our own parameter
+ * 182 there (range 0-4, the same sound slot 20), bound per track at
+ * runtime by the overlay's tick (182 on a VAWT track, stock 110 on FM):
  *   A  WAVE  0-7: SAW, SQUARE, PULSE, TRI, SINE, WT, NOISE, blank
  *   (WT plays the TABL bank; position 8 is silent)
  *   B  SYM   0-18: wavefolder symmetry, middle = symmetric folds. An
@@ -317,8 +317,10 @@ const struct dnm_knob vawt_knobs[DNM_KNOBS] = {
 /* OCT's own parameter (core_params id 182): knob D's stock parameter
  * (110) only spans raw 0-2, so a -2..+2 octave cannot live on it. This
  * record clones 110's shape (group, flags, CC, turn character) with a
- * 0-4 range on the same sound slot 20; a page-constructor patch puts it
- * on SYN1-D in place of 110. FM keeps 110 untouched. */
+ * 0-4 range on the same sound slot 20. overlay.c's tick binds SYN1-D to
+ * it on a VAWT track and back to stock 110 elsewhere; the page record is
+ * one global table built once at boot, so a page-constructor patch cannot
+ * tell the tracks apart. FM keeps 110 untouched. */
 const struct core_param vawt_oct_param = {
     182, 0, 20, 0, 1024, 512, 1, 1048624, 203, 160, 3584,
     "Octave", "SYN", "OCT", vawt_oct_text, fw_str_empty, 0,
@@ -327,10 +329,12 @@ const struct core_param vawt_oct_param = {
 /* WAVE's own parameter (core_params id 183): knob A's stock parameter
  * (107) spans raw 0-7, one more than the seven VAWT waves (0-6: the last
  * slot would sit silent showing "---"). Same clone shape as 182, 0-6 on
- * the same sound slot 17; the page-constructor patch asks for it on VAWT
- * tracks only (FM keeps stock 107). No MIDI CC (-1): cloning 107's would
- * need its record, and sharing OCT's would cross-talk. LFOs target sound
- * slots, so WAVE/OCT follow the slot (host-tested, hardware pending). */
+ * the same sound slot 17. Knob A keeps stock 107 for now — that 8th value
+ * is the documented "off", and the page record cannot bind 183 per track
+ * from the constructor — so this record is minted ahead of a future
+ * runtime bind (overlay.c's tick) that drops the slot. No MIDI CC (-1):
+ * cloning 107's would need its record, and sharing OCT's would cross-talk.
+ * LFOs target sound slots, so WAVE/OCT follow the slot. */
 const struct core_param vawt_wave_param = {
     183, 0, 17, 0, 1536, 0, 1, -1, 203, 160, 3584,
     "Wave", "SYN", "WAV", vawt_wave_text, fw_str_empty, 107,

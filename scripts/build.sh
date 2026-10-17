@@ -7,7 +7,7 @@
 set -e
 STOCK43="${1:?usage: build.sh STOCK43 [STOCK44 [MODVER]]}"
 STOCK44="${2:-}"
-MODVER="${3:-0.1x}"
+MODVER="${3:-0.1z}"
 EL=tools/elekloader
 export ELEKLOADER_CROSS="${ELEKLOADER_CROSS:-m68k-elf-}"
 export PYTHONPATH="$EL:${PYTHONPATH:-}"

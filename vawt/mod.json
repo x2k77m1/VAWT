@@ -1,7 +1,7 @@
 {
   "id": "dnvawt",
-  "version": "0.1x",
-  "ele3_version": "0.1x",
+  "version": "0.1z",
+  "ele3_version": "0.1z",
   "license": "GPL-2.0-or-later",
   "title": "VAWT (Digitone machine)",
   "category": "Sound",
@@ -11,63 +11,24 @@
   "os": "1.43",
   "sources": [
     "vawt.c",
-    "overlay.c",
-    "pages.s"
+    "overlay.c"
   ],
   "cflags": [
     "-DKEYVAR_AT=0x41367ce4",
     "-DPATPTR_AT=0x4138e214",
-    "-DPROJPTR_AT=0x419efde0"
+    "-DPROJPTR_AT=0x419efde0",
+    "-DVAWT_PAGE_D_REC=0x4136b5c4"
   ],
   "ports": {
     "1.44": {
       "cflags": [
         "-DKEYVAR_AT=0x41368ce4",
         "-DPATPTR_AT=0x4138f214",
-        "-DPROJPTR_AT=0x419f0de0"
-      ],
-      "defsym": {
-        "PAGE_D_REC": "0x4136c5c4",
-        "PAGE_A_REC": "0x4136c5b8",
-        "FW_KIT": "0x4138f220",
-        "FW_ACTIVE_TRACK": "0x41368ce0"
-      },
-      "sites": [
-        {
-          "addr": "0x4016af9a",
-          "stock": "23c14136c5c4",
-          "op": "jsr",
-          "target": "vawt_knob182"
-        },
-        {
-          "addr": "0x4016af7c",
-          "stock": "23c14136c5b8",
-          "op": "jsr",
-          "target": "vawt_knob183"
-        }
+        "-DPROJPTR_AT=0x419f0de0",
+        "-DVAWT_PAGE_D_REC=0x4136c5c4"
       ]
     }
   },
-  "defsym": {
-    "PAGE_D_REC": "0x4136b5c4",
-    "PAGE_A_REC": "0x4136b5b8",
-    "FW_KIT": "0x4138e220",
-    "FW_ACTIVE_TRACK": "0x41367ce0"
-  },
-  "sites": [
-    {
-      "addr": "0x4016ad26",
-      "stock": "23c14136b5c4",
-      "op": "jsr",
-      "target": "vawt_knob182"
-    },
-    {
-      "addr": "0x4016ad08",
-      "stock": "23c14136b5b8",
-      "op": "jsr",
-      "target": "vawt_knob183"
-    }
-  ],
   "subscribe": [
     {
       "event": "ev_tick",

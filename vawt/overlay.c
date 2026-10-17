@@ -56,6 +56,9 @@ extern const struct dnm_knob vawt_knobs[DNM_KNOBS];
 #ifndef PROJPTR_AT
 #error "PROJPTR_AT: the Project object pointer (0x419efde0 in 1.43)"
 #endif
+#ifndef VAWT_PAGE_D_REC
+#error "VAWT_PAGE_D_REC: the SYN1 page-1 record's knob-D slot (0x4136b5c4 in 1.43)"
+#endif
 
 /* Brain/screen chain, as core_page_shown uses it (core-dn1 menu.s): the
  * key dispatcher's brain keeps the screens shown at +0x54 (bottom) and
@@ -637,6 +640,30 @@ static int32_t tick_enc = -1;
 static int32_t tick_enc_page = -1;
 static int32_t tick_hl;
 
+/* SYN1's knob D must edit a different parameter per track: our Octave
+ * (182, raw 0-4) on a VAWT track, stock RATIO B (110, raw 0-2) on every
+ * other. It cannot be bound in the page constructor: that runs once, in
+ * the C++ static-initializer chain before any project is loaded, so its
+ * machine check sees only the boot track and the record it writes is
+ * shared by all four tracks. (That is why the 0.1c-0.1x constructor
+ * patch put 182 on every track, FM included, and why 0.1y's machine
+ * check — evaluated once, at boot, for an FM track — left stock 110 on
+ * the VAWT track too, so OCT could only reach -2..0 and turned like the
+ * ratio knob.) Bind it here instead, from this constant UI tick, once
+ * the active track's machine is known; nothing else writes the record,
+ * so one aligned long written by the UI task and read by the same task
+ * needs no lock. */
+#define VAWT_OCT_ID     182
+#define VAWT_RATIO_B_ID 110
+
+static void vawt_bind_oct(int32_t mid)
+{
+    volatile int32_t *rec = (volatile int32_t *)VAWT_PAGE_D_REC;
+    int32_t id = mid == VAWT_ID ? VAWT_OCT_ID : VAWT_RATIO_B_ID;
+    if (*rec != id)
+        *rec = id;
+}
+
 void vawt_tick(void *ctrl)
 {
     int32_t track = fw_active_track, mid, key, page, step, i, hl, locked = 0;
@@ -670,6 +697,7 @@ void vawt_tick(void *ctrl)
     if (!kit)
         return;
     mid = FW_SOUND_SLOT(kit, track, 0) >> 8;
+    vawt_bind_oct(mid);
     if (mid != VAWT_ID) {
         tick_valid = 0;
         return;

@@ -22,16 +22,19 @@ slot frees.
 SYN1's first page and SYN2's first page become VAWT's (second pages stay FM's
 and show blank). All values are the stock parameters', so everything persists
 with the sound. Coarse tuning is OCT in whole octaves; fine transpose lives on
-the TRIG page. Knob D is our own parameter 182 (stock 110 only spans 0–2),
-knob A our own parameter 183. If either misbehaves on sounds from older builds,
-re-pick VAWT from MACHINES to reset the sound.
+the TRIG page. Knob D is our own parameter 182 (stock 110 only spans 0–2); the
+overlay's tick points SYN1-D at 182 on a VAWT track and back at stock 110 on an
+FM one, since the page table is shared and built once. Knob A stays the stock
+parameter 107, whose 0–7 range is the documented 1–8. If a knob misbehaves on
+sounds from older builds, re-pick VAWT from MACHINES to reset the sound.
 
 SYN1 (top row left to right, then bottom row):
 
 - **A — WAVE** (box reads 1–8): the oscillator. 1 SAW, 2 SQU (square),
   3 PLS (pulse), 4 TRI (triangle), 5 SIN (sine), 6 WT (wavetable, see TABL),
   7 NOI (noise), 8 off (main oscillator silent — play SUB and NOIS alone).
-  Own stock parameter (core `param:183`); FM tracks keep stock ALGO untouched.
+  Stock parameter 107; FM tracks keep stock ALGO untouched. (`param:183`, a
+  0–6 clone that would drop the silent 8th slot, is minted but not bound.)
 - **B — SYM** (blank dial): wavefolder symmetry −100…+100%, middle = symmetric
   folds. Offsets the fold for even harmonics and lopsided folding; pairs with
   FOLD. Only audible when the folder works (FOLD up and/or SYM off middle).
@@ -149,7 +152,6 @@ Only the name stays FM's — a machine mod cannot rename those per track.
 | `vawt/mod.json` | the mod (machine id 10, needs core 3.1 + machines) |
 | `vawt/vawt.c` | the engine |
 | `vawt/overlay.c` | the `ev_tick`/`ev_draw`/`ev_key`/`ev_enc` overlay |
-| `vawt/pages.s` | SYN1 page-constructor patches for params 182/183 |
 | `vawt/wt_tables.h` | wavetable data (24 bundled tables, all replaceable) |
 | `tools/generate_wt.py` | regenerates `wt_tables.h` (your own folder via `docs/custom-tables.md`) |
 | `tools/build-tables.py` | builds a custom `.elemod` from your own `.wav` folder |
