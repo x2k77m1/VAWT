@@ -7,10 +7,6 @@ replaceable - factory ships 24 bundled tables), a sub osc, white noise, a wavefo
 a lowpass - played through the Digitone's own multimode filter, mixer, effects
 and AMP envelope, like FM.
 
-| SYN1 page | SYN2 page |
-|---|---|
-| ![VAWT SYN1](preview/vawt-syn1-ui.png) | ![VAWT SYN2](preview/vawt-syn2-ui.png) |
-
 Pick it per track from MACHINES (hold a track key T1–T4), like any machine.
 A sound's machine is stored in its sound slot 0, so sound locks switch engines
 per trig, and p-locks, LFOs, MIDI CC and presets work on its knobs as on FM.
@@ -28,6 +24,10 @@ overlay's tick points SYN1-D at 182 on a VAWT track and back at stock 110 on an
 FM one, since the page table is shared and built once. Knob A stays the stock
 parameter 107, whose 0–7 range is the documented 1–8. If a knob misbehaves on
 sounds from older builds, re-pick VAWT from MACHINES to reset the sound.
+
+| SYN1 page | SYN2 page |
+|---|---|
+| ![VAWT SYN1](preview/vawt-syn1-ui.png) | ![VAWT SYN2](preview/vawt-syn2-ui.png) |
 
 SYN1 (top row left to right, then bottom row):
 
