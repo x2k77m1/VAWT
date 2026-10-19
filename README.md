@@ -1,10 +1,10 @@
-# VAWT — a virtual-analogue + wavetable machine for the Digitone mk1
+# VAWT - a virtual-analogue + wavetable machine for the Digitone mk1
 
 A machine mod for the Elektron Digitone mk1 / Digitone Keys (OS 1.43 and 1.44).
 It adds a non-FM sound engine: saw/square/pulse/triangle/sine
 VA oscillators, a wavetable oscillator with bank switching (24 banks, all
-replaceable — factory ships 24 bundled tables), a sub osc, white noise, a wavefolder, bitcrush and
-a lowpass — played through the Digitone's own multimode filter, mixer, effects
+replaceable - factory ships 24 bundled tables), a sub osc, white noise, a wavefolder, bitcrush and
+a lowpass - played through the Digitone's own multimode filter, mixer, effects
 and AMP envelope, like FM.
 
 ![VAWT SYN1](preview/vawt-syn1-ui.png)
@@ -13,8 +13,8 @@ and AMP envelope, like FM.
 Pick it per track from MACHINES (hold a track key T1–T4), like any machine.
 A sound's machine is stored in its sound slot 0, so sound locks switch engines
 per trig, and p-locks, LFOs, MIDI CC and presets work on its knobs as on FM.
-Polyphony safety fuse: VAWT is monophonic — at most 1 VAWT note renders at
-once (newest note wins) — further simultaneous notes stay silent until the
+Polyphony safety fuse: VAWT is monophonic - at most 1 VAWT note renders at
+once (newest note wins) - further simultaneous notes stay silent until the
 slot frees.
 
 ## Controls
@@ -30,32 +30,32 @@ sounds from older builds, re-pick VAWT from MACHINES to reset the sound.
 
 SYN1 (top row left to right, then bottom row):
 
-- **A — WAVE** (box reads 1–8): the oscillator. 1 SAW, 2 SQU (square),
+- **A - WAVE** (box reads 1–8): the oscillator. 1 SAW, 2 SQU (square),
   3 PLS (pulse), 4 TRI (triangle), 5 SIN (sine), 6 WT (wavetable, see TABL),
-  7 NOI (noise), 8 off (main oscillator silent — play SUB and NOIS alone).
+  7 NOI (noise), 8 off (main oscillator silent - play SUB and NOIS alone).
   Stock parameter 107; FM tracks keep stock ALGO untouched. (`param:183`, a
   0–6 clone that would drop the silent 8th slot, is minted but not bound.)
-- **B — SYM** (blank dial): wavefolder symmetry −100…+100%, middle = symmetric
+- **B - SYM** (blank dial): wavefolder symmetry −100…+100%, middle = symmetric
   folds. Offsets the fold for even harmonics and lopsided folding; pairs with
   FOLD. Only audible when the folder works (FOLD up and/or SYM off middle).
-- **C — UNIS** (blank dial): second-oscillator mix 0–100%. A detuned twin of
+- **C - UNIS** (blank dial): second-oscillator mix 0–100%. A detuned twin of
   the same wave; 0 = single oscillator.
-- **D — OCT**: octave −2 / −1 / 0 / +1 / +2. Coarse tuning. Stops at both ends.
-- **E — DET**: twin-oscillator detune, ±52 cents, middle = in tune. Only audible
+- **D - OCT**: octave −2 / −1 / 0 / +1 / +2. Coarse tuning. Stops at both ends.
+- **E - DET**: twin-oscillator detune, ±52 cents, middle = in tune. Only audible
   with UNIS turned up.
-- **F — FOLD**: wavefolder 0–100%. Folds the waveform back on itself for
+- **F - FOLD**: wavefolder 0–100%. Folds the waveform back on itself for
   brighter, harsher harmonics.
-- **G — SUB**: rounded-square sub level 0–100%, an octave below (see SOCT).
+- **G - SUB**: rounded-square sub level 0–100%, an octave below (see SOCT).
   Mostly square so it cuts through, with triangle mixed in to round the edges.
-- **H — NOIS**: white-noise level 0–100%, full-strength at max.
+- **H - NOIS**: white-noise level 0–100%, full-strength at max.
 
 SYN2 (short labels; the envelope graphs are FM leftovers that do nothing):
 
-- **A — PW**: pulse width 5–95%. Only shapes SQU and PLS.
-- **B — WPO (= WPOS)**: wavetable position 0–100%. Set WAVE to 6 (WT), then turn
+- **A - PW**: pulse width 5–95%. Only shapes SQU and PLS.
+- **B - WPO (= WPOS)**: wavetable position 0–100%. Set WAVE to 6 (WT), then turn
   this to morph through the TABLE bank's 8 frames. Does nothing on other waves.
-- **C — DRF (= DRFT)**: analog pitch drift 0–100%. Slow random detune.
-- **D — TON (= TONE)**: lowpass 0–100%. Full = wide open.
+- **C - DRF (= DRFT)**: analog pitch drift 0–100%. Slow random detune.
+- **D - TON (= TONE)**: lowpass 0–100%. Full = wide open.
 - **CRS (= CRSH)**: crusher, OFF at full clockwise, then 12-bit/18 kHz down to
   4-bit/5 kHz as it turns down. Depth and rate degrade together.
 - **SOC (= SOCT)**: sub octave −2 / −1 / 0, relative to the oscillator.
@@ -69,12 +69,12 @@ show their native graphics.
 
 ## LFOs
 
-Both system LFOs modulate all 15 VAWT SYN slots, like on FM — FM tracks are
+Both system LFOs modulate all 15 VAWT SYN slots, like on FM - FM tracks are
 unaffected. The destination list still shows FM names (upstream limit), but each
 entry targets the same sound slot VAWT uses, so pick by position: e.g. HARM moves
 DET, ALGO moves WAVE, and so on down the SYN knob order. Depth adds to the knob
 value and clamps at the knob's stock range. FILTER and AMP destinations are not
-applied in the VAWT render — they act downstream in the Digitone's filter/mix,
+applied in the VAWT render - they act downstream in the Digitone's filter/mix,
 as on FM.
 
 ## Signal path
@@ -91,7 +91,7 @@ are skipped exactly, so a default patch costs well under a full one.
 
 ## Status
 
-- Host DSP tests pass (`python3 tools/vawt_host_test.py`, 40 checks — needs an
+- Host DSP tests pass (`python3 tools/vawt_host_test.py`, 40 checks - needs an
   elekloader checkout at `tools/elekloader` for headers only, no stock needed):
   pitch, octave, transpose, fold, wavetable morph and bank switching, pulse
   width, sub, noise, tone, crush, levels, bounds, plus both system LFOs to VAWT
@@ -143,7 +143,7 @@ moves.
 Known limits (upstream, not VAWT): the turn popup's long name, the LFO
 destination lists and the page group headings read the stock parameter records,
 so a turned DET reports `Harmonics=…` and WAVE reports `Algorithm=…` up top.
-Only the name stays FM's — a machine mod cannot rename those per track.
+Only the name stays FM's - a machine mod cannot rename those per track.
 
 ## Files
 
