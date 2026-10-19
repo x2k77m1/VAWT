@@ -7,8 +7,9 @@ replaceable - factory ships 24 bundled tables), a sub osc, white noise, a wavefo
 a lowpass - played through the Digitone's own multimode filter, mixer, effects
 and AMP envelope, like FM.
 
-![VAWT SYN1](preview/vawt-syn1-ui.png)
-![VAWT SYN2](preview/vawt-syn2-ui.png)
+| SYN1 page | SYN2 page |
+|---|---|
+| ![VAWT SYN1](preview/vawt-syn1-ui.png) | ![VAWT SYN2](preview/vawt-syn2-ui.png) |
 
 Pick it per track from MACHINES (hold a track key T1–T4), like any machine.
 A sound's machine is stored in its sound slot 0, so sound locks switch engines
